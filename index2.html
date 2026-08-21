@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI ChatBot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            background-color: #1e1e1e;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+        .chat-container {
+            width: 60%;
+            max-width: 800px;
+            height: 80vh;
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 15px rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-box {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            border-radius: 5px;
+            background: #1e1e1e;
+        }
+        .message {
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .user-message {
+            background: #007bff;
+            color: white;
+            justify-content: flex-end;
+            text-align: right;
+        }
+        .bot-message {
+            background: #4a4a4a;
+            color: white;
+            justify-content: flex-start;
+            text-align: left;
+        }
+        .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin: 5px;
+        }
+        .input-group {
+            margin-top: 10px;
+        }
+        .input-group input {
+            background: #3a3a3a;
+            color: white;
+            border: none;
+        }
+        .input-group input::placeholder {
+            color: #bbbbbb;
+        }
+        .btn-primary {
+            background: #007bff;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <h4 class="text-center">AI ChatBot</h4>
+        <div id="chatBox" class="chat-box"></div>
+        <div class="input-group">
+            <input type="text" id="userInput" class="form-control" placeholder="Type a message..." />
+            <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        async function sendMessage() {
+            const inputField = document.getElementById('userInput');
+            const chatBox = document.getElementById('chatBox');
+            const userInput = inputField.value.trim();
+            if (!userInput) return;
+            
+            const userMessage = `<div class='message user-message'><img class='profile-pic' src='user.png' /> <span>${userInput}</span></div>`;
+            chatBox.innerHTML += userMessage;
+            inputField.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+            
+            try {
+                const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        Authorization: 'Bearer YOUR_OPENROUTER_API_KEY',
+                        'HTTP-Referer': 'https://www.sitename.com',
+                        'X-Title': 'SiteName',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        model: 'mistralai/mistral-7b-instruct:free',
+                        messages: [{ role: 'user', content: userInput }],
+                    }),
+                });
+                const data = await response.json();
+                const botResponse = data.choices?.[0]?.message?.content || 'No response.';
+                
+                const botMessage = `<div class='message bot-message'><img class='profile-pic' src='bot.png' /> <span>${marked.parse(botResponse)}</span></div>`;
+                chatBox.innerHTML += botMessage;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } catch (error) {
+                chatBox.innerHTML += `<div class='message bot-message'>Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
