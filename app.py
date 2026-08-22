@@ -20,3 +20,7 @@ response = requests.post(
 
   })
 )
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    return {'status': 'healthy', 'service': 'AI-Agent-App'}, 200
